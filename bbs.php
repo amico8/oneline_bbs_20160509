@@ -1,10 +1,7 @@
 <?php
-// ここにDBに登録する処理を記述する
-$dsn = 'mysql:dbname=oneline_bbs;host=localhost';
-$user = 'root';
-$password = '';
-$dbh = new PDO($dsn,$user,$password);
-$dbh->query('SET NAMES utf8');
+
+// dbconnect.phpを読み込む
+require('dbconnect.php');
 
 // -----------------------------
 // 編集ボタンクリック時

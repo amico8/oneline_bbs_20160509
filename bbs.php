@@ -35,7 +35,7 @@ if (!empty($_GET['action']) && $_GET['action'] == 'edit') {
 if (!empty($_POST)) {
   if (empty($_POST['id'])) {
     // データを登録する
-    $sql = 'INSERT INTO `posts`(`nickname`, `comment`, `created`) VALUES (?, ?, now())';
+    $sql = 'INSERT INTO `posts`(`nickname`, `comment`, `created`, `delete_flag`) VALUES (?, ?, now(), 0)';
     $data[] = $_POST['nickname'];
     $data[] = $_POST['comment'];
 
@@ -56,7 +56,24 @@ if (!empty($_POST)) {
 // -----------------------------
 // データの削除処理
 if (!empty($_GET['action']) && $_GET['action'] == 'delete') {
-  $sql = 'DELETE FROM `posts` WHERE `id` = ?';
+  // $sql = 'DELETE FROM `posts` WHERE `id` = ?';
+  // 論理削除のSQL
+  $sql = 'UPDATE `posts` SET `delete_flag`=1 WHERE `id` = ?';
+  $data[] = $_GET['id'];
+
+  // SQL実行
+  $stmt = $dbh->prepare($sql);
+  $stmt->execute($data);
+
+  // bbs.phpに画面を遷移する
+  header('Location: bbs.php');
+  exit();
+}
+
+// -----------------------------
+// LIKEが押された時の処理
+if (!empty($_GET['action']) && $_GET['action'] == 'like') {
+  $sql = 'UPDATE `posts` SET `likes`=`likes`+1 WHERE `id` = ?';
   $data[] = $_GET['id'];
 
   // SQL実行
@@ -70,7 +87,7 @@ if (!empty($_GET['action']) && $_GET['action'] == 'delete') {
 
 // -----------------------------
 // データの表示
-$sql = 'SELECT * FROM `posts` ORDER BY `created` DESC';
+$sql = 'SELECT * FROM `posts` WHERE `delete_flag` = 0 ORDER BY `created` DESC';
 // SQL実行
 $stmt = $dbh->prepare($sql);
 $stmt->execute();
@@ -184,6 +201,8 @@ $dbh = null;
                     ?>
                       <h2><a href="#"><?php echo $d['nickname']; ?></a> <span><?php echo $created; ?></span></h2>
                       <p><?php echo $d['comment']; ?></p>
+                      <!-- サムズアップボタンの設置 -->
+                      <a href="bbs.php?action=like&id=<?php echo $d['id']; ?>" class="thumbs"><i class="fa fa-thumbs-o-up" aria-hidden="true"></i> LIKE <?php echo $d['likes']; ?></a>
                       <a href="bbs.php?action=delete&id=<?php echo $d['id']; ?>" onclick="return confirm('本当に削除しますか？');"><i class="fa fa-trash trash" aria-hidden="true"></i></a>
                   </div>
               </div>
